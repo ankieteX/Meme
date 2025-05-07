@@ -8,6 +8,7 @@
         body {
             font-family: Arial, sans-serif;
             display: flex;
+            flex-direction: column;
             justify-content: center;
             align-items: center;
             height: 100vh;
@@ -44,6 +45,9 @@
     </style>
 </head>
 <body>
+    <p>console.log([106,97,32,99,104,99,101,32,98,97,110,97,110,107,97]
+        .map(c => String.fromCharCode(c)).join(''))
+      </p>
     <div class="container">
         <h2>Wpisz hasło, aby obejrzeć film</h2>
         <form id="passwordForm">
@@ -57,10 +61,10 @@
         document.getElementById('passwordForm').addEventListener('submit', function(event) {
             event.preventDefault();
             const password = document.getElementById('password').value;
-            const correctPassword = 'ja chce bananka'; // Podaj swoje hasło
+            const correctPassword = 'ja chce bananka';
 
             if (password === correctPassword) {
-                window.location.href = 'https://youtu.be/Eq_unrK8oT4?si=GRQi1ovPi5eu6h66&t=12'; // Podaj link do YouTube
+                window.location.href = 'https://youtu.be/Eq_unrK8oT4?si=GRQi1ovPi5eu6h66&t=12';
             } else {
                 alert('Nieprawidłowe hasło');
             }
