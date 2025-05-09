@@ -48,16 +48,16 @@
             background-color: #45a049;
         }
 
-       p {
-    transition: opacity 3s ease;
-    user-select: none;          
-    opacity: 0;  
-    padding: 0px 100px;               
-}
+        p {
+            transition: opacity 3s ease;
+            user-select: none;
+            opacity: 0;
+            padding: 0px 100px;
+        }
 
-p:hover {
-    opacity: 1;                 
-}
+        p:hover {
+            opacity: 1;
+        }
 
         #fade-text {
             transition: opacity 1s ease;
@@ -70,7 +70,7 @@ p:hover {
     </style>
 </head>
 <body>
-    <p>rk vklw khuh zh jr djdlq</p>
+    <p>2Pac</p>
 
     <div class="container">
         <h2 id="fade-text">Wpisz hasło, aby obejrzeć film</h2>
@@ -82,37 +82,49 @@ p:hover {
     </div>
 
     <script>
+        const wiktor1 = 'Jebać cie wiktor nie zaglądaj ;)'
+        const wiktor2 = 'Jebać cie wiktor nie zaglądaj ;)'
+        const wiktor3 = 'Jebać cie wiktor nie zaglądaj ;)'
         const fadeText = document.getElementById('fade-text');
-    
+        const wiktor5 = 'Jebać cie wiktor nie zaglądaj ;)'
         setTimeout(() => {
             fadeText.classList.add('hidden');
-    
+            const wiktor4 = 'Jebać cie wiktor nie zaglądaj ;)'
             setTimeout(() => {
                 fadeText.textContent = 'Break the mold';
                 fadeText.classList.remove('hidden');
                 fadeText.addEventListener('click', () => {
                     fadeText.classList.add('hidden');
-    
+                    const wiktor5 = 'Jebać cie wiktor nie zaglądaj ;)'
                     setTimeout(() => {
-                        fadeText.textContent = 'o 3 miejsca';
+                        fadeText.textContent = 'First off, fuck your bitch';
                         fadeText.classList.remove('hidden');
                     }, 1000);
                 }, { once: true });
             }, 1000);
         }, 10000);
-    
-        document.getElementById('passwordForm').addEventListener('submit', function(event) {
+        const wiktor6 = 'Jebać cie wiktor nie zaglądaj ;)'
+        async function hashPassword(password) {
+            const encoder = new TextEncoder();
+            const data = encoder.encode(password);
+            const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+            const hashArray = Array.from(new Uint8Array(hashBuffer));
+            return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+        }
+        const wiktor7 = 'Jebać cie wiktor nie zaglądaj ;)'
+        const correctHash = 'b4e2b946d9d5f8d0a6e45f8c77025748ad16b8a8df3ac82b1ce9fa51ee7e2e2c';
+        const wiktor8 = 'Jebać cie wiktor nie zaglądaj ;)'
+        document.getElementById('passwordForm').addEventListener('submit', async function(event) {
             event.preventDefault();
             const password = document.getElementById('password').value;
-            const correctPassword = 'oh shit here we go again';
-    
-            if (password === correctPassword) {
-                window.location.href = 'https://youtu.be/KOaeDHeJ80I?si=ldLa3MSADC1mBcvP';
+            const hashedInput = await hashPassword(password);
+            const wiktor9 = 'Jebać cie wiktor nie zaglądaj ;)'
+            if (hashedInput === correctHash) {
+                window.location.href = 'https://youtu.be/41qC3w3UUkU?si=8fIcUwpCsM2vi5TA&t=12';
             } else {
                 alert('Nieprawidłowe hasło');
-            }
+            }const wiktor10 = 'Jebać cie wiktor nie zaglądaj ;)'
         });
     </script>
-    
 </body>
 </html>
