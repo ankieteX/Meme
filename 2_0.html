@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<title>Ukryte Hasło w Obrazie</title>
+<style>
+  body { font-family: Arial, sans-serif; text-align:center; margin:50px; background-color:#f0f0f0; }
+  img { 
+    max-width: 80%; 
+    height:auto; 
+    border:1px solid #ccc; 
+    margin-bottom:20px; 
+    display:none;
+    margin-left: auto; 
+    margin-right: auto;
+  }
+  .controls { margin-top: 10px; display:flex; justify-content:center; gap:10px; align-items:center; }
+  input { padding:10px; font-size:16px; width:220px; box-sizing:border-box; }
+  button { padding:10px 20px; font-size:16px; cursor:pointer; }
+  #message { margin-top:20px; font-weight:bold; transition: opacity 0.5s; opacity: 0; min-height:1.2em; }
+  #instruction { margin-top:40px; font-size:12px; color:#555; }
+  #videoWrap { margin-top:20px; display:none; max-width: 90%; margin-left:auto; margin-right:auto; }
+  #videoWrap iframe { width:100%; height:480px; max-width:800px; border:0; border-radius:6px; box-shadow:0 6px 20px rgba(0,0,0,0.15); }
+</style>
+</head>
+<body>
+
+<h1>Znajdź ukryte hasło!</h1>
+<h2>Human face of it?</h2>
+
+<img id="puzzleImage" src="https://cdn.media.amplience.net/i/canon/pixma-g650-fra_gallery_01_467fd12cb70b4a9487317ac49b94cbcd?$prod-gallery-1by1$" alt="Zagadkowy obraz">
+
+<div class="controls">
+  <input type="password" id="guess" placeholder="Wpisz hasło">
+  <button onclick="checkPassword()">Sprawdź</button>
+</div>
+
+<div id="message"></div>
+
+<div id="videoWrap">
+  <iframe id="ytPlayer" allow="autoplay; encrypted-media; fullscreen" allowfullscreen src=""></iframe>
+</div>
+
+<div id="instruction">
+Instrukcja: Najpierw wpisz hasło, aby odsłonić obraz. Potem spróbuj odgadnąć główne hasło ukryte w obrazie. Aby zmienić obraz, podmień URL w <code>src</code> obrazka. Aby zmienić hasło do obrazu lub główne hasło użyj funkcji <code>encodePassword('twoje_haslo')</code> w konsoli i zastąp tablice w kodzie.
+</div>
+
+<script>
+const key = [13, 7, 23];
+const imagePasswordObf = [108, 119, 123, 100, 115, 99];
+const correctPasswordObf = [110, 102, 121, 98, 105];
+let imageUnlocked = false;
+
+function decodePassword(arr) {
+    let chars = [];
+    for (let i = 0; i < arr.length; i++) {
+        chars.push(String.fromCharCode(arr[i] ^ key[i % key.length]));
+    }
+    return chars.join('');
+}
+
+function encodePassword(str) {
+    let out = [];
+    for (let i = 0; i < str.length; i++) {
+        out.push(str.charCodeAt(i) ^ key[i % key.length]);
+    }
+    console.log(out);
+    return out;
+}
+
+const imagePassword = decodePassword(imagePasswordObf);
+const correctPassword = decodePassword(correctPasswordObf);
+
+function showMessage(text, color) {
+    const messageDiv = document.getElementById('message');
+    messageDiv.textContent = text;
+    messageDiv.style.color = color;
+    messageDiv.style.opacity = 1;
+    setTimeout(() => {
+        messageDiv.style.opacity = 0;
+        setTimeout(() => { messageDiv.textContent = ""; }, 600);
+    }, 3000);
+}
+
+function unlockAndShowVideo() {
+    const videoWrap = document.getElementById('videoWrap');
+    const iframe = document.getElementById('ytPlayer');
+    const videoId = "r_FWdIWuiGs";
+    const src = "https://www.youtube.com/embed/" + videoId + "?autoplay=1&rel=0&modestbranding=1";
+    iframe.src = src;
+    videoWrap.style.display = "block";
+    videoWrap.scrollIntoView({ behavior: "smooth", block: "center" });
+}
+
+function checkPassword() {
+    const guess = document.getElementById('guess').value.trim();
+    if (!guess) {
+        showMessage("Najpierw wpisz hasło!", "orange");
+        return;
+    }
+    if (!imageUnlocked) {
+        if (guess.toLowerCase() === imagePassword.toLowerCase()) {
+            const img = document.getElementById('puzzleImage');
+            img.style.display = "block";
+            img.style.marginLeft = "auto";
+            img.style.marginRight = "auto";
+            imageUnlocked = true;
+            showMessage("Obraz odsłonięty! Teraz spróbuj odgadnąć główne hasło.", "blue");
+            document.getElementById('guess').value = "";
+        } else {
+            showMessage("Niepoprawne hasło do obrazu ❌", "red");
+        }
+    } else {
+        if (guess.toLowerCase() === correctPassword.toLowerCase()) {
+            showMessage("Gratulacje! Główne hasło jest poprawne 🔓", "green");
+            setTimeout(() => { unlockAndShowVideo(); }, 600);
+        } else {
+            showMessage("Niepoprawne główne hasło, spróbuj ponownie ❌", "red");
+        }
+    }
+}
+
+function showCheekyMessage() {
+    const messageDiv = document.getElementById('message');
+    messageDiv.textContent = "Niezła próba xD";
+    messageDiv.style.color = "purple";
+    messageDiv.style.opacity = 1;
+    setTimeout(() => {
+        messageDiv.style.opacity = 0;
+        setTimeout(() => { messageDiv.textContent = ""; }, 600);
+    }, 3000);
+}
+
+document.addEventListener("keydown", function(e) {
+    if (e.key === "F12") {
+        e.preventDefault();
+        showCheekyMessage();
+    }
+    if ((e.ctrlKey && e.shiftKey && (e.key === "I" || e.key === "J")) || 
+        (e.ctrlKey && e.key === "U")) {
+        e.preventDefault();
+        showCheekyMessage();
+    }
+});
+
+document.addEventListener("contextmenu", function(e) {
+    e.preventDefault();
+    showCheekyMessage();
+});
+</script>
+
+</body>
+</html>
