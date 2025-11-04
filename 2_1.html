@@ -1,0 +1,222 @@
+<!doctype html>
+<html lang="pl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Gra: Odgadnij hasło — Zbadaj element!</title>
+  <meta name="description" content="Mała gra: użyj 'Zbadaj element' / devtools, żeby znaleźć ukryte wskazówki." />
+  <style>
+    :root{--bg:#0f172a;--card:#0b1220;--accent:#7dd3fc;--muted:#94a3b8}
+    html,body{height:100%;margin:0;font-family:Inter,ui-sans-serif,system-ui,Arial;background:linear-gradient(120deg,#021427 0%, #07203a 100%);color:#e6eef8}
+    .wrap{max-width:980px;margin:36px auto;padding:28px;background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(0,0,0,0.05));border-radius:12px;box-shadow:0 6px 30px rgba(2,6,23,0.6)}
+    h1{margin:0 0 8px;font-size:24px}
+    p.lead{color:var(--muted);margin:0 0 18px}
+    .board{display:flex;gap:20px}
+    .left{flex:1}
+    .right{width:320px}
+    .card{background:var(--card);padding:16px;border-radius:10px;box-shadow:0 4px 14px rgba(2,6,23,0.6)}
+    .clues{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px}
+    .fact{padding:10px;border-radius:8px;cursor:pointer;border:1px dashed rgba(255,255,255,0.03);min-height:68px}
+    .fact:hover{transform:translateY(-3px)}
+    .input-row{display:flex;gap:8px;margin-top:12px}
+    input[type=text]{flex:1;padding:10px;border-radius:8px;border:1px solid rgba(255,255,255,0.06);background:transparent;color:inherit}
+    button{padding:10px 12px;border-radius:8px;border:none;background:var(--accent);color:#042028;font-weight:700;cursor:pointer}
+    .result{margin-top:12px;padding:10px;border-radius:8px;color:#042028;background:#e6fffa;display:none}
+    .hint{margin-top:12px;color:var(--muted);font-size:14px}
+    footer{margin-top:16px;color:var(--muted);font-size:13px}
+    /* hidden clues visible only in devtools or page source */
+    .ghost{display:none}
+    /* offscreen but selectable */
+    .offscreen{position: absolute; left:-9999px; top:auto; width:1px; height:1px; overflow:hidden}
+    /* clickable invisible area */
+    .invisible-area{position:relative}
+    .invisible-area .tap{position:absolute;right:8px;top:8px;width:40px;height:40px;background:transparent;border-radius:6px}
+    /* subtle visual 'inspect me' cue if user opens devtools and changes CSS */
+    .inspect-cue{opacity:0.85;font-size:12px;color:rgba(125,211,252,0.2)}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>Odgadnij hasło — Zbadaj element 🔍</h1>
+    <p class="lead">Twoim zadaniem jest odgadnąć hasło. Wskazówki są porozrzucane: widoczne na stronie, <em>ukryte w komentarzach</em>, w <em>atrybutach</em> oraz w <em>konsoli</em>. Klikaj ciekawostki — niektóre odsłonią dodatkowe podpowiedzi.</p>
+
+    <div class="board">
+      <div class="left">
+        <div class="card">
+          <div class="invisible-area">
+            <label for="guess">Wpisz hasło</label>
+            <div class="input-row">
+              <input id="guess" type="text" placeholder="Wpisz tutaj..." autocomplete="off" />
+              <button id="try">Sprawdź</button>
+            </div>
+            <div class="hint">Podpowiedź: użyj <strong>Zbadaj element</strong> i obejrzyj komentarze, atrybuty oraz konsolę.</div>
+            <div id="result" class="result">Brawo! Hasło poprawne.</div>
+            <!-- komentarz: hasło ma 8 znaków i zawiera cyfry -->
+          </div>
+
+          <div class="clues">
+            <div class="fact" id="fact1" tabindex="0">
+              <strong>Ciekawostka 1</strong>
+              <div class="inspect-cue">Kliknij mnie — znajdziesz literę.</div>
+              <p style="margin-top:8px;color:var(--muted);font-size:13px">Przydatne info o historii szyfrów.</p>
+            </div>
+
+            <div class="fact" id="fact2" tabindex="0">
+              <strong>Ciekawostka 2</strong>
+              <div class="inspect-cue">Szukaj atrybutów.</div>
+              <p style="margin-top:8px;color:var(--muted);font-size:13px">Czy wiesz, że pierwsze 'hasła' używano już w średniowieczu?</p>
+            </div>
+
+            <div class="fact" id="fact3" tabindex="0">
+              <strong>Ciekawostka 3</strong>
+              <div class="inspect-cue">Konsola też pomaga.</div>
+              <p style="margin-top:8px;color:var(--muted);font-size:13px">Kliknij, aby odsłonić mały fragment.</p>
+            </div>
+
+            <div class="fact" id="fact4" tabindex="0">
+              <strong>Mała zagadka</strong>
+              <div class="inspect-cue">Szukaj ukrytych elementów w DOM.</div>
+              <p style="margin-top:8px;color:var(--muted);font-size:13px">Czasem prawda leży fragmentarycznie...</p>
+            </div>
+          </div>
+
+        </div>
+
+        <div class="card" style="margin-top:12px">
+          <strong>Wskazówki techniczne (niejawne)</strong>
+          <p class="hint">Rzeczy, które warto zobaczyć: &ndash; komentarze w HTML; &ndash; <code>data-</code> atrybuty elementów; &ndash; metatagi; &ndash; logi w konsoli; &ndash; elementy z <code>display:none</code> lub <code>left:-9999px</code>.</p>
+        </div>
+
+      </div>
+
+      <div class="right">
+        <div class="card">
+          <strong>Panel ciekawostek</strong>
+          <p style="margin:8px 0 0;color:var(--muted)">Kliknij karty, aby odsłonić fragmenty wskazówek. Niektóre informacje są również w źródle strony i konsoli.</p>
+          <div id="clueBox" style="margin-top:12px;color:var(--muted);font-size:14px">Kliknięte karty: <span id="count">0</span>/3</div>
+
+          <div style="margin-top:12px">
+            <button id="hintReveal">Pokaż dodatkowy hint</button>
+            <div id="extraHint" class="hint" style="display:none">(Bonus) Pierwsze trzy znaki to litery.</div>
+          </div>
+
+        </div>
+
+        <div class="card" style="margin-top:12px">
+          <strong>Mała galeria</strong>
+          <p style="margin:8px 0;color:var(--muted);font-size:13px">Kliknij obrazek (niewidoczny) — to też działa!</p>
+          <!-- obrazek ma ukrytą warstwę kliknięciową -->
+          <div style="height:120px;display:flex;align-items:center;justify-content:center;position:relative">
+            <div style="width:100%;height:100%;border-radius:8px;background:linear-gradient(90deg,#022 0%, #044 100%);display:flex;align-items:center;justify-content:center;color:var(--muted);opacity:0.95">[Ilustracja: skrytka]</div>
+            <button id="hiddenTap" class="tap" style="position:absolute;left:3px;top:3px;width:40px;height:40px;opacity:0;"> </button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <footer>Powodzenia 🎯 — pamiętaj: część wskazówek jest tylko w &lt;!-- komentarzach --&gt; i atrybutach elementów.</footer>
+  </div>
+
+  <!-- UKRYTE: atrybut data-letter na elemencie body (sprawdź w DevTools) -->
+  <script>
+    // zakodowana wiadomość w base64 (sprawdź źródło lub zmienną w konsoli)
+    const secret_b64 = 'WkFHQURLQTIy'; // "ZAGADKA22" zakodowane
+    // odszyfruj i wyświetl w konsoli (użyj konsoli devtools)
+    console.log('>> log debug: secret (base64) =', secret_b64);
+    console.log('>> tip: use atob(secret_b64) to decode.');
+
+    // dodatkowy 'ukryty' element z data-attribute - zobacz body.dataset
+    document.documentElement.setAttribute('data-secret','ZAGADKA22');
+    // ukryta zmienna w skrypcie
+    const hidden = { clue1: 'pierwsze trzy znaki to litery', clue2: 'ostatnie dwa to cyfry', all: 'ZAGADKA22' };
+
+    // log, ale nie od razu pełny - trzeba wykonać ręcznie: hidden.all
+    console.log('>> debug: hidden object available as `window.hiddenClue`');
+    window.hiddenClue = hidden; // teraz użytkownik może wpisać w konsoli hiddenClue.all
+
+    // liczenie kliknięć na ciekawostkach
+    let clicked = 0;
+    function markClicked(el, reveal){
+      if(el.dataset.clicked) return;
+      el.dataset.clicked = '1';
+      el.style.border = '1px solid rgba(125,211,252,0.25)';
+      clicked++;
+      document.getElementById('count').textContent = clicked;
+      if(reveal) reveal.style.display = 'block';
+    }
+
+    document.getElementById('fact1').addEventListener('click', function(){
+      // do HTML source komentarz
+      const node = document.createElement('div');
+      node.textContent = 'Fragment: ___GAD__';
+      node.style.marginTop = '8px';
+      node.style.color = 'var(--muted)';
+      this.appendChild(node);
+      markClicked(this);
+    });
+
+    document.getElementById('fact2').addEventListener('click', function(){
+      // pokaż data-attribute hint w tym elemencie
+      this.setAttribute('data-hint','Litery + cyfry');
+      const node = document.createElement('div');
+      node.textContent = 'Atrybut: data-hint="Litery + cyfry"';
+      node.style.marginTop = '8px';
+      node.style.color = 'var(--muted)';
+      this.appendChild(node);
+      markClicked(this);
+    });
+
+    document.getElementById('fact3').addEventListener('click', function(){
+      // instrukcja, by zajrzeć do konsoli
+      const node = document.createElement('div');
+      node.textContent = 'Sprawdź konsolę devtools: wpisz `atob("' + secret_b64 + '")` lub `hiddenClue.all`';
+      node.style.marginTop = '8px';
+      node.style.color = 'var(--muted)';
+      this.appendChild(node);
+      markClicked(this);
+    });
+
+    document.getElementById('fact4').addEventListener('click', function(){
+      const node = document.createElement('div');
+      node.textContent = 'Szukaj elementów `display:none` lub elementów offscreen.';
+      node.style.marginTop = '8px';
+      node.style.color = 'var(--muted)';
+      this.appendChild(node);
+      markClicked(this);
+    });
+
+    document.getElementById('hiddenTap').addEventListener('click', function(){
+      alert('Udało się! Otrzymujesz podpowiedź: hasło zaczyna się od ZAG...');
+      // reveal small hint area
+      const extra = document.getElementById('extraHint');
+      extra.style.display = 'block';
+    });
+
+    document.getElementById('hintReveal').addEventListener('click', function(){
+      document.getElementById('extraHint').style.display = 'block';
+    });
+
+    document.getElementById('try').addEventListener('click', function(){
+      const val = document.getElementById('guess').value.trim();
+      const result = document.getElementById('result');
+      if(!val){ result.style.display='block'; result.style.background='#fff3bf'; result.textContent = 'Nic nie wpisałeś.'; return; }
+      if(val === 'ZAGADKA22'){
+        result.style.display='block'; result.style.background='#bbf7d0'; result.textContent = 'Brawo! Hasło poprawne: ZAGADKA22 🎉';
+      } else {
+        result.style.display='block'; result.style.background='#ffdede'; result.textContent = 'Niestety — to nie to. Spróbuj spojrzeć w źródło (Ctrl+U) lub DevTools.';
+      }
+    });
+
+    // dodatkowy fragment ukryty w DOM
+    const hiddenDiv = document.createElement('div');
+    hiddenDiv.className = 'offscreen';
+    hiddenDiv.id = 'veryHidden';
+    hiddenDiv.textContent = 'OFFSCREEN: ostatnie dwa znaki to 22';
+    document.body.appendChild(hiddenDiv);
+
+    // jeszcze jedna drobna wskazówka w komentarzu (poniżej)
+    /* haslo:zagadka22 */
+  </script>
+</body>
+</html>
